@@ -42,15 +42,12 @@
 
 
 (var (*universe*
-      (let ((pkg (make-gopackage
-                  :name ""
-                  :path ""
-                  :types
-                  (make-types
-                   int  int8  int16  int32  int64
-                   uint uint8 uint16 uint32 uint64 uintptr
-                   float32 float64 complex64 complex128
-                   bool string error))))
+      (let ((pkg (gopackage "" "")))
+        (setf (gopackage-types pkg)
+              (make-types int  int8  int16  int32  int64
+                          uint uint8 uint16 uint32 uint64 uintptr
+                          float32 float64 complex64 complex128
+                          bool string error))
         (setf (gopackage-objects pkg)
               (make-goobjects
                (goconst "false" bool   false pkg)
