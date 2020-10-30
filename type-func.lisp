@@ -22,7 +22,7 @@
   (declare (type (or null simple-vector) types))
   (when types
     (every #'check-type.go types))
-  (or types %zerov))
+  (or types %[]))
 
 
 
@@ -36,7 +36,7 @@
   (declare (type (or null simple-vector) types))
   (when types
     (every #'check-type.interface types))
-  (or types %zerov))
+  (or types %[]))
 
 
 
@@ -47,7 +47,7 @@
   (declare (type (or null simple-vector) methods))
   (when methods
     (every #'check-method methods))
-  (or methods %zerov))
+  (or methods %[]))
 
 
 (func check-structfield (field)
@@ -57,7 +57,7 @@
   (declare (type (or null simple-vector) fields))
   (when fields
     (every #'check-structfield fields))
-  (or fields %zerov))
+  (or fields %[]))
 
 
 
@@ -182,13 +182,13 @@
   (let ((h (make-hash-table :test 'equal)))
     (loop for typ of-type type.go in types
           do (htable! h (type-name typ) typ))
-    h))
+    (the hash-table h)))
 
 (func make-goobjects (&rest objects)
   (let ((h (make-hash-table :test 'equal)))
     (loop for obj of-type goobject in objects
           do (htable! h (goobject-name obj) obj))
-    h))
+    (the hash-table h)))
 
 
 

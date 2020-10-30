@@ -15,9 +15,9 @@
 
 (in-package :clgo)
 
-; avoid conflict with symbols cl:byte cl:nil cl:string cl:t
+; declare function (error ...) as an alias for (cl:error ...)
 (eval-always
-  (shadow '(byte error string t )))
+  (setf (symbol-function 'error) #'cl:error))
 
 (const
     (chandir.recv     'chandir.recv)
@@ -63,19 +63,32 @@
 
 
 (const
-    (%cpu-bytes (if (> (integer-length most-positive-fixnum) 32)
-                    8
-                    4))
+    (%cpu-bytes (if (> (integer-length most-positive-fixnum) 32) 8 4))
     (%cpu-bits (ash %cpu-bytes 3)))
 
-(const-once (%zerov #()))
+
+(const-once (%[] #()))
 
 
-(deftype kind    () 'symbol)
-(deftype chandir () 'symbol)
-(deftype int     () '(signed-byte   #.%cpu-bytes))
-(deftype uintptr () '(unsigned-byte #.%cpu-bytes))
-(deftype string  () 'cl:string)
+(deftype kind       () 'symbol)
+(deftype chandir    () 'symbol)
+(deftype int        () '(signed-byte    #.%cpu-bits))
+(deftype int8       () '(signed-byte    8))
+(deftype int16      () '(signed-byte    16))
+(deftype int32      () '(signed-byte    32))
+(deftype int64      () '(signed-byte    64))
+(deftype uint       () '(unsigned-byte  #.%cpu-bits))
+(deftype uint8      () '(unsigned-byte  8))
+(deftype uint16     () '(unsigned-byte  16))
+(deftype uint32     () '(unsigned-byte  32))
+(deftype uint64     () '(unsigned-byte  64))
+(deftype uintptr    () '(unsigned-byte  #.%cpu-bits))
+(deftype bool       () 'boolean)
+(deftype float32    () 'single-float)
+(deftype float64    () 'double-float)
+(deftype complex64  () '(complex single-float))
+(deftype complex128 () '(complex double-float))
+(deftype string     () 'cl:string)
 
 (defstruct (type.go (:conc-name type-))
   (kind       cl:nil :type kind)
@@ -96,13 +109,13 @@
 
 (defstruct (type.func (:include type.go))
   (recv       cl:nil :type (or null type.go))
-  (params     %zerov :type simple-vector)     ;; array of type.go
-  (results    %zerov :type simple-vector))    ;; array of type.go
+  (params     %[] :type simple-vector)     ;; array of type.go
+  (results    %[] :type simple-vector))    ;; array of type.go
 
 (defstruct (type.interface (:include type.go))
-  (embeddeds        %zerov :type simple-vector)  ;; array of type.go
-  (explicit-methods %zerov :type simple-vector)  ;; array of gofunc
-  (methods          %zerov :type simple-vector)) ;; array of gofunc
+  (embeddeds        %[] :type simple-vector)  ;; array of type.go
+  (explicit-methods %[] :type simple-vector)  ;; array of gofunc
+  (methods          %[] :type simple-vector)) ;; array of gofunc
 
 (defstruct (type.map (:include type.go))
   (key        cl:nil :type (or null type.go))
@@ -111,7 +124,7 @@
 (defstruct (type.named (:include type.go))
   (name       (error "gonamed: missing name") :type string)
   (underlying cl:nil :type (or null type.go))
-  (methods    %zerov :type simple-vector)) ;; array of gofunc
+  (methods    %[] :type simple-vector)) ;; array of gofunc
 
 (defstruct (type.ptr (:include type.go))
   (elem       cl:nil :type (or null type.go)))
@@ -120,7 +133,7 @@
   (elem       cl:nil :type (or null type.go)))
 
 (defstruct (type.struct (:include type.go))
-  (fields     %zerov    :type simple-vector)) ;; array of gostructfield
+  (fields     %[]    :type simple-vector)) ;; array of gostructfield
 
 
 

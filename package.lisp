@@ -24,4 +24,7 @@
   (:use #:cl
         #:bordeaux-threads)
 
+  ;; avoid conflict with symbols cl:byte cl:error cl:string cl:t
+  (:shadow #:byte #:error #:string #:t)
+
   (:export #:macro #:func))
