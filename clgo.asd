@@ -32,7 +32,7 @@
    (:file "type"            :depends-on ("macro"))
    (:file "type-func"       :depends-on ("type"))
    (:file "universe"        :depends-on ("type-func"))
-   (:file "lookup"          :depends-on ("universe")))
+   (:file "compile"         :depends-on ("universe")))
 
 
   :in-order-to ((asdf:test-op (asdf:test-op "clgo-test"))))

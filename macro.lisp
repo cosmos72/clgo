@@ -16,6 +16,8 @@
 (in-package :clgo)
 
 
+(deftype _ () cl:t)
+
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro eval-always (&body body)
     `(eval-when (:compile-toplevel :load-toplevel :execute)
@@ -26,10 +28,27 @@
      (defmacro ,name (,@args) ,@body)
      (values)))
 
-(macro func (name (&rest args) &body body)
-  `(eval-always
-     (defun ,name (,@args) ,@body)
-     (values)))
+(defun split-list-pairs (pairs)
+  (declare (type list pairs))
+  (loop for (name typ) in pairs
+        collect name into names
+        collect typ into types
+        finally (return-from nil
+                  (values (the list names) (the list types)))))
+  
+(macro func (name (&rest args-and-types) (&rest ret-types) &body body)
+  (multiple-value-bind (arg-names arg-types) (split-list-pairs args-and-types)
+    `(eval-always
+       (declaim (ftype (function (,@arg-types) (values ,@ret-types &optional)) ,name))
+       (defun ,name (,@arg-names)
+         #|
+         (declare ,@(loop for (arg-name arg-type) in args-and-types
+                          collect `(type ,arg-type ,arg-name)))
+         (the (values ,@ret-types &optional)
+              (block ,name ,@body))
+         |#
+         ,@body)
+       (values))))
 
 (macro const (&rest args)
   `(eval-always
@@ -60,13 +79,14 @@
 ;;
 ;; the package clgo itself does NOT need to change case sensitivity:
 ;; such feature is provided for user convenience.
-(defvar %saved-readtable-case)
+(var (%saved-readtable-case))
 
-(func set-readtable-case-sensitive ()
+(func set-readtable-case-sensitive () (keyword)
   (setf %saved-readtable-case (readtable-case *readtable*))
   (setf (readtable-case *readtable*) :invert))
 
-(func restore-readtable-case ()
+
+(func restore-readtable-case () (symbol)
   (setf (readtable-case *readtable*) %saved-readtable-case))
 
 (macro with-readtable-case-sensitive (&body body)
@@ -80,9 +100,9 @@
 
 
 (declaim (inline htable@))
-(func htable@ (hash-table key)
-  (gethash key hash-table)) 
+(func htable@ ((h hash-table) (key _)) (_ boolean)
+  (gethash key h)) 
 
 (declaim (inline htable!))
-(func htable! (hash-table key value)
-  (setf (gethash key hash-table) value))
+(func htable! ((h hash-table) (key _) (value _)) (_)
+  (setf (gethash key h) value))

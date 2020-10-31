@@ -64,7 +64,22 @@
 
         (setf (gopackage-objs pkg) objs
               (gopackage-types   pkg) types)
-        pkg))
+        pkg)))
 
-     ;; calls (gopackage) which requires *universe*
-     (*compiler* (new-gocompiler)))
+
+(func gopackage (name path)
+  (declare (type symbol name)
+           (type string path))
+  (make-gopackage :name name :path path :parent *universe*))
+
+(func gocompiler (scope)
+  (declare (type goscope scope))
+  (make-gocompiler :scope scope))
+
+(func new-gocompiler ()
+  (gocompiler (goscope.file "repl.go" (gopackage 'main "main"))))
+
+
+
+;; calls (gopackage) which requires *universe*
+(var (*compiler* (new-gocompiler)))

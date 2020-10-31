@@ -15,36 +15,37 @@
 
 (in-package :clgo)
 
-(func check-type.go (typ)
-  (assert (typep typ 'type.go)))
+(func check-type.go ((typ _)) (type.go)
+  (assert (typep typ 'type.go))
+  typ)
 
-(func check-types.go (types)
-  (declare (type (or null simple-vector) types))
+(func check-types.go ((types (or null simple-vector))) (simple-vector)
   (when types
     (every #'check-type.go types))
   (or types %[]))
 
 
 
-(func check-type.interface (typ)
+(func check-type.interface ((typ _)) (type.go)
   (etypecase typ
     (type.named (let ((u (type.named-underlying typ)))
-                  (when u (assert (typep u 'type.interface)))))
-    (type.interface)))
+                  (when u
+                    (assert (typep u 'type.interface)))))
+    (type.interface))
+  typ)
 
-(func check-types.interface (types)
-  (declare (type (or null simple-vector) types))
+(func check-types.interface ((types (or null simple-vector))) (simple-vector)
   (when types
     (every #'check-type.interface types))
   (or types %[]))
 
 
 
-(func check-method (method)
-  (assert (typep method 'gofunc)))
+(func check-method ((method _)) (gofunc)
+  (assert (typep method 'gofunc))
+  method)
 
-(func check-methods (methods)
-  (declare (type (or null simple-vector) methods))
+(func check-methods ((methods (or null simple-vector))) (simple-vector)
   (when methods
     (every #'check-method methods))
   (or methods %[]))
@@ -208,20 +209,6 @@
            (type gopackage pkg))
   (make-goscope.file :path path :parent pkg))
 
-(declaim (type gopackage *universe*))
-
-(func gopackage (name path)
-  (declare (type symbol name)
-           (type string path))
-  (make-gopackage :name name :path path :parent *universe*))
-
-
-(func gocompiler (scope)
-  (declare (type goscope scope))
-  (make-gocompiler :scope scope))
-
-(func new-gocompiler ()
-  (gocompiler (goscope.file "repl.go" (gopackage 'main "main"))))
 
 
 
