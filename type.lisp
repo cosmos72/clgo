@@ -103,7 +103,7 @@
   (elem       nil :type (or null type.go)))
 
 (defstruct (type.basic (:include type.go))
-  (name       (error "type.basic: missing name") :type string))
+  (name    (error "type.basic: missing name") :type symbol))
 
 (defstruct (type.chan (:include type.go))
   (dir  chandir.both :type chandir)
@@ -124,7 +124,7 @@
   (elem       nil :type (or null type.go)))
 
 (defstruct (type.named (:include type.go))
-  (name       (error "type.named: missing name") :type string)
+  (name      (error "type.named: missing name") :type symbol)
   (underlying nil :type (or null type.go))
   (methods    %[] :type simple-vector)) ;; array of gofunc
 

@@ -74,7 +74,7 @@
                    :count count :elem elem))
 
 (func type.basic (name kind size cl-type)
-  (declare (type string    name)
+  (declare (type symbol    name)
            (type kind      kind)
            (type uintptr   size)
            (type (or symbol cons) cl-type))
@@ -111,7 +111,7 @@
                  :key key :elem elem))
 
 (func type.named (name underlying &optional methods)
-  (declare (type string name)
+  (declare (type symbol name)
            (type (or null type.go) underlying)
            (type (or null simple-vector) methods))
   (let ((u underlying)
@@ -226,7 +226,7 @@
 
 
 (func make-types (&rest types)
-  (let ((h (make-hash-table :test 'equal)))
+  (let ((h (make-hash-table :test 'eq)))
     (loop for typ of-type type.go in types
           do (htable! h (type-name typ) typ))
     (the hash-table h)))
