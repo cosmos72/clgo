@@ -25,7 +25,7 @@
     (chandir.both     'chandir.both))
     
 (const
-    (kind.invalid    cl:nil)
+    (kind.invalid     nil)
     (kind.bool       'kind.bool)
 
     (kind.int        'kind.int)
@@ -56,10 +56,10 @@
     (kind.struct     'kind.struct))
 
 
-; for simplicity, map false => cl:nil and true => cl:t
+; for simplicity, map false => nil and true => cl:t
 (const
     (true       cl:t)
-    (false      cl:nil))
+    (false      nil))
 
 
 (const
@@ -91,24 +91,26 @@
 (deftype string     () 'cl:string)
 
 (defstruct (type.go (:conc-name type-))
-  (kind       cl:nil :type kind)
-  (size       cl:nil :type (or null uintptr))
+  (kind       nil    :type kind)
+  (size       nil    :type (or null uintptr))
   (comparable true   :type boolean)
-  (cl-type    cl:t   :type (or symbol list)))
+  (cl-type    nil    :type (or symbol list))
+  ;; number of simple-vector slots needed by this type
+  (cl-slots   1      :type (or null uintptr)))
 
 (defstruct (type.array (:include type.go))
   (count      0      :type int)
-  (elem       cl:nil :type (or null type.go)))
+  (elem       nil :type (or null type.go)))
 
 (defstruct (type.basic (:include type.go))
-  (name       (error "gobasic: missing name") :type string))
+  (name       (error "type.basic: missing name") :type string))
 
 (defstruct (type.chan (:include type.go))
   (dir  chandir.both :type chandir)
-  (elem       cl:nil :type (or null type.go)))
+  (elem       nil :type (or null type.go)))
 
 (defstruct (type.func (:include type.go))
-  (recv       cl:nil :type (or null type.go))
+  (recv       nil :type (or null type.go))
   (params     %[] :type simple-vector)     ;; array of type.go
   (results    %[] :type simple-vector))    ;; array of type.go
 
@@ -118,29 +120,29 @@
   (methods          %[] :type simple-vector)) ;; array of gofunc
 
 (defstruct (type.map (:include type.go))
-  (key        cl:nil :type (or null type.go))
-  (elem       cl:nil :type (or null type.go)))
+  (key        nil :type (or null type.go))
+  (elem       nil :type (or null type.go)))
 
 (defstruct (type.named (:include type.go))
-  (name       (error "gonamed: missing name") :type string)
-  (underlying cl:nil :type (or null type.go))
+  (name       (error "type.named: missing name") :type string)
+  (underlying nil :type (or null type.go))
   (methods    %[] :type simple-vector)) ;; array of gofunc
 
 (defstruct (type.ptr (:include type.go))
-  (elem       cl:nil :type (or null type.go)))
+  (elem       (error "type.ptr: missing elem") :type type.go))
 
 (defstruct (type.slice (:include type.go))
-  (elem       cl:nil :type (or null type.go)))
+  (elem       nil :type (or null type.go)))
 
 (defstruct (type.struct (:include type.go))
-  (fields     %[]    :type simple-vector)) ;; array of gostructfield
+  (fields     %[]    :type simple-vector)) ;; array of reflect.field
 
 
 
-(defstruct gostructfield
+(defstruct reflect.field
   (name       ""     :type string)
   (pkgpath    ""     :type string)
-  (type       (error "gostructfield: missing type") :type type.go)
+  (type       (error "reflect.field: missing type") :type type.go)
   (offset     0      :type uintptr)
   (index      0      :type int))
 
@@ -149,7 +151,7 @@
 (defstruct goscope
   (objects    (make-hash-table :test 'equal) :type hash-table)
   (types      (make-hash-table :test 'equal) :type hash-table)
-  (parent     cl:nil :type (or null goscope)))
+  (parent     nil :type (or null goscope)))
 
 (defstruct (gopackage (:include goscope))
   (name       (error "gopackage: missing name") :type string)
@@ -162,7 +164,7 @@
 (defstruct goobject
   (name       ""     :type string)
   (type       (error "goobject: missing type") :type (or null type.go))
-  (parent     cl:nil :type (or null goscope)))
+  (scope      nil :type (or null goscope)))
 
 (defstruct (goconst (:include goobject))
   (value      (error "goconst: missing value") :type cl:t))

@@ -51,7 +51,7 @@
 
 
 (func check-structfield (field)
-  (assert (typep field 'gostructfield)))
+  (assert (typep field 'reflect.field)))
 
 (func check-structfields (fields)
   (declare (type (or null simple-vector) fields))
@@ -64,8 +64,13 @@
 (func type.array (count elem)
   (declare (type int    count)
            (type type.go elem))
-  (make-type.array :kind kind.array :comparable (and elem (type-comparable elem))
+  (make-type.array :kind kind.array
+                   :comparable (type-comparable elem)
                    :cl-type 'simple-vector
+                   :cl-slots (let ((elem-slots (type-cl-slots elem)))
+                               (if (null elem-slots)
+                                   nil
+                                   (* count elem-slots)))
                    :count count :elem elem))
 
 (func type.basic (name kind size cl-type)
@@ -128,13 +133,55 @@
   (make-type.slice :kind kind.slice :comparable false #| TODO :cl-type |#
                    :elem elem))
 
+
+
+(func reflect.field-size (field)
+  (declare (type reflect.field field))
+  (type-size (reflect.field-type field)))
+
+(func reflect.fields-size (fields)
+  (declare (type (or null simple-vector) fields))
+  (let ((fields (check-structfields fields))
+        (size 0))
+    (loop for field across fields
+          with field-size = (reflect.field-size field)
+          do
+             (if (null field-size)
+                 (return-from reflect.fields-size nil)
+                 (incf size field-size)))
+    size))
+
+
+
+(func reflect.field-cl-slots (field)
+  (declare (type reflect.field field))
+  (type-cl-slots (reflect.field-type field)))
+
+(func reflect.fields-cl-slots (fields &optional (initial-n-slots 0))
+  (declare (type (or null simple-vector) fields)
+           (type uintptr initial-n-slots))
+  (let ((fields (check-structfields fields))
+        (n-slots initial-n-slots))
+    (loop for field across fields
+          with field-n-slots = (reflect.field-cl-slots field)
+          do
+             (if (null field-n-slots)
+                 (return-from reflect.fields-cl-slots nil)
+                 (incf n-slots field-n-slots)))
+    n-slots))
+
+
+
 (func type.struct (fields)
   (declare (type (or null simple-vector) fields))
   (let ((fields (check-structfields fields)))
-    (make-type.struct :kind kind.struct :size (* %cpu-bytes (length fields))
+    (make-type.struct :kind kind.struct
+                      :size (reflect.fields-size fields)
                       :cl-type 'simple-vector
+                      ;; 1 initial slot contains struct type. useful for debugging
+                      :cl-slots (reflect.fields-cl-slots fields 1)
                       :comparable (every (lambda (field)
-                                           (type-comparable (gostructfield-type field)))
+                                           (type-comparable (reflect.field-type field)))
                                          fields)
                       :fields fields)))
 
@@ -161,19 +208,19 @@
            (type (or null type.go) typ)
            (type cl:t             value)
            (type (or null goscope) scope))
-  (make-goconst :name name :type typ :value value :parent scope))
+  (make-goconst :name name :type typ :value value :scope scope))
 
 (func govar (name typ &optional scope)
   (declare (type string    name)
            (type type.go    typ)
            (type (or null goscope) scope))
-  (make-govar :name name :type typ :parent scope))
+  (make-govar :name name :type typ :scope scope))
 
 (func gofunc (name typ &optional scope)
   (declare (type string    name)
            (type type.go    typ)
            (type (or null goscope) scope))
-  (make-gofunc :name name :type typ :parent scope))
+  (make-gofunc :name name :type typ :scope scope))
 
 
 
