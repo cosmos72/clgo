@@ -149,12 +149,12 @@
 
 
 (defstruct goscope
-  (objects    (make-hash-table :test 'equal) :type hash-table)
-  (types      (make-hash-table :test 'equal) :type hash-table)
+  (objects    (make-hash-table :test 'eq) :type hash-table)
+  (types      (make-hash-table :test 'eq) :type hash-table)
   (parent     nil :type (or null goscope)))
 
 (defstruct (gopackage (:include goscope))
-  (name       (error "gopackage: missing name") :type string)
+  (name       (error "gopackage: missing name") :type symbol)
   (path       (error "gopackage: missing path") :type string))
 
 
@@ -162,9 +162,9 @@
 
 ;; base type of goconst, gofunc, govar
 (defstruct goobject
-  (name       ""     :type string)
+  (name       nil    :type symbol)
   (type       (error "goobject: missing type") :type (or null type.go))
-  (scope      nil :type (or null goscope)))
+  (scope      nil    :type (or null goscope)))
 
 (defstruct (goconst (:include goobject))
   (value      (error "goconst: missing value") :type cl:t))

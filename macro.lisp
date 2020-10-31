@@ -15,11 +15,15 @@
 
 (in-package :clgo)
 
+;; Go is case-sensitive => make Common Lisp case sensitive too
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (setf (readtable-case *readtable*) :invert))
+
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro eval-always (&body body)
     `(eval-when (:compile-toplevel :load-toplevel :execute)
        ,@body)))
-    
+
 (defmacro macro (name (&rest args) &body body)
   `(eval-always
      (defmacro ,name (,@args) ,@body)

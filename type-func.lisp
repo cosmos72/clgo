@@ -196,28 +196,31 @@
 (func goscope (&optional parent-scope)
   (make-goscope :parent parent-scope))
 
+(declaim (type gopackage *universe*))
+
 (func gopackage (name path)
-  (declare (type string    name path))
-  (make-gopackage :name name :path path))
+  (declare (type symbol name)
+           (type string path))
+  (make-gopackage :name name :path path :parent *universe*))
 
 
 
 
 (func goconst (name typ value &optional scope)
-  (declare (type string           name)
-           (type (or null type.go) typ)
-           (type cl:t             value)
+  (declare (type symbol            name)
+           (type (or null type.go) typ) ;; constant 'nil has nil type
+           (type cl:t              value)
            (type (or null goscope) scope))
   (make-goconst :name name :type typ :value value :scope scope))
 
 (func govar (name typ &optional scope)
-  (declare (type string    name)
+  (declare (type symbol     name)
            (type type.go    typ)
            (type (or null goscope) scope))
   (make-govar :name name :type typ :scope scope))
 
 (func gofunc (name typ &optional scope)
-  (declare (type string    name)
+  (declare (type symbol     name)
            (type type.go    typ)
            (type (or null goscope) scope))
   (make-gofunc :name name :type typ :scope scope))
@@ -232,7 +235,7 @@
     (the hash-table h)))
 
 (func make-goobjects (&rest objects)
-  (let ((h (make-hash-table :test 'equal)))
+  (let ((h (make-hash-table :test 'eq)))
     (loop for obj of-type goobject in objects
           do (htable! h (goobject-name obj) obj))
     (the hash-table h)))
@@ -251,6 +254,30 @@
   (format stream "#<~S ~S ~S>" (type-of typ) (type.named-name typ)
           (type-kind typ)))
 
+
+(defmethod print-object ((obj goobject) stream)
+  (format stream "#<~S ~S ~S ~S ~S ~S ~S>"
+          (type-of obj)
+          :name
+          (goobject-name obj)
+          :type
+          (goobject-type obj)
+          :scope
+          (let ((scope (goobject-scope obj)))
+            (if scope true false))))
+
+(defmethod print-object ((obj goconst) stream)
+  (format stream "#<~S ~S ~S ~S ~S ~S ~S ~S ~S>"
+          (type-of obj)
+          :name
+          (goobject-name obj)
+          :type
+          (goobject-type obj)
+          :value
+          (goconst-value obj)
+          :scope
+          (let ((scope (goobject-scope obj)))
+            (if scope true false))))
 
 (defmethod print-object ((scope goscope) stream)
   (format stream "#<~S ~S ~S ~S ~S ~S ~S>"

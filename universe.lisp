@@ -37,12 +37,12 @@
               'error
               (type.interface
                nil
-               (vector (gofunc "Error" (type.func nil nil (vector string))))))))
+               (vector (gofunc '|Error| (type.func nil nil (vector string))))))))
                          
 
 
 (var (*universe*
-      (let ((pkg (gopackage "" "")))
+      (let ((pkg (make-gopackage :name '*universe* :path "")))
         (setf (gopackage-types pkg)
               (make-types int  int8  int16  int32  int64
                           uint uint8 uint16 uint32 uint64 uintptr
@@ -50,8 +50,8 @@
                           bool string error))
         (setf (gopackage-objects pkg)
               (make-goobjects
-               (goconst "false" bool   false pkg)
-               (goconst "true"  bool   true  pkg)
-               (goconst "nil"   nil    nil   pkg)))
+               (goconst 'false bool   false pkg)
+               (goconst 'true  bool   true  pkg)
+               (goconst 'nil   nil    nil   pkg)))
         pkg)))
 
