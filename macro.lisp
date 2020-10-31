@@ -28,13 +28,14 @@
      (defmacro ,name (,@args) ,@body)
      (values)))
 
-(defun split-list-pairs (pairs)
-  (declare (type list pairs))
-  (loop for (name typ) in pairs
-        collect name into names
-        collect typ into types
-        finally (return-from nil
-                  (values (the list names) (the list types)))))
+(eval-always
+  (defun split-list-pairs (pairs)
+    (declare (type list pairs))
+    (loop for (name typ) in pairs
+	  collect name into names
+	  collect typ into types
+	  finally (return-from nil
+		    (values (the list names) (the list types))))))
   
 (macro func (name (&rest args-and-types) (&rest ret-types) &body body)
   (multiple-value-bind (arg-names arg-types) (split-list-pairs args-and-types)
