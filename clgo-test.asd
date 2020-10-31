@@ -30,8 +30,9 @@
   :components
   ((:module :test
     :components ((:file "package")
-                 (:file "run-suite"      :depends-on ("package")))))
-
+                 (:file "universe"       :depends-on ("package"))
+                 (:file "run-suite"      :depends-on ("universe")))))
+  
   :perform (asdf:test-op
             (o c)
             (eval (read-from-string "(fiveam:run! 'clgo-test:suite)"))))

@@ -18,6 +18,7 @@
 (defun time-to-string (&optional (time (get-universal-time)))
   (multiple-value-bind (ss mm hh day month year day-of-week daylight tz)
       (decode-universal-time time)
+    (declare (ignore day-of-week daylight))
     (format nil "~4,'0D-~2,'0D-~2,'0DT~2,'0D:~2,'0D:~2,'0D~A~2,'0D:00"
             year month day hh mm ss (if (minusp tz) #\+ #\-) (abs tz))))
 

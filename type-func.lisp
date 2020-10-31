@@ -199,8 +199,14 @@
     (type.named (type.named-name typ))))
 
 
+
 (func goscope (&optional parent-scope)
   (make-goscope :parent parent-scope))
+
+(func goscope.file (path pkg)
+  (declare (type string path)
+           (type gopackage pkg))
+  (make-goscope.file :path path :parent pkg))
 
 (declaim (type gopackage *universe*))
 
@@ -209,6 +215,13 @@
            (type string path))
   (make-gopackage :name name :path path :parent *universe*))
 
+
+(func gocompiler (scope)
+  (declare (type goscope scope))
+  (make-gocompiler :scope scope))
+
+(func new-gocompiler ()
+  (gocompiler (goscope.file "repl.go" (gopackage 'main "main"))))
 
 
 
@@ -240,10 +253,10 @@
           do (htable! h (type-name typ) typ))
     (the hash-table h)))
 
-(func make-goobjects (&rest objects)
+(func make-goobjs (&rest objs)
   (let ((h (make-hash-table :test 'eq)))
-    (loop for obj of-type goobject in objects
-          do (htable! h (goobject-name obj) obj))
+    (loop for obj of-type goobj in objs
+          do (htable! h (goobj-name obj) obj))
     (the hash-table h)))
 
 
@@ -261,40 +274,50 @@
           (type-kind typ)))
 
 
-(defmethod print-object ((obj goobject) stream)
+(defmethod print-object ((obj goobj) stream)
   (format stream "#<~S ~S ~S ~S ~S ~S ~S>"
           (type-of obj)
           :name
-          (goobject-name obj)
+          (goobj-name obj)
           :type
-          (goobject-type obj)
+          (goobj-type obj)
           :scope
-          (let ((scope (goobject-scope obj)))
+          (let ((scope (goobj-scope obj)))
             (if scope true false))))
 
 (defmethod print-object ((obj goconst) stream)
   (format stream "#<~S ~S ~S ~S ~S ~S ~S ~S ~S>"
           (type-of obj)
           :name
-          (goobject-name obj)
+          (goobj-name obj)
           :type
-          (goobject-type obj)
+          (goobj-type obj)
           :value
           (goconst-value obj)
           :scope
-          (let ((scope (goobject-scope obj)))
+          (let ((scope (goobj-scope obj)))
             (if scope true false))))
 
 (defmethod print-object ((scope goscope) stream)
   (format stream "#<~S ~S ~S ~S ~S ~S ~S>"
           (type-of scope)
-          :object-count
-          (hash-table-count (goscope-objects scope))
+          :obj-count
+          (hash-table-count (goscope-objs scope))
           :type-count
           (hash-table-count (goscope-types scope))
           :parent
           (let ((parent (goscope-parent scope)))
             (if parent true false))))
+
+(defmethod print-object ((scope.file goscope.file) stream)
+  (format stream "#<~S ~S ~S ~S ~S ~S ~S>"
+          (type-of scope.file)
+          :path
+          (goscope.file-path scope.file)
+          :obj-count
+          (hash-table-count (goscope-objs scope.file))
+          :type-count
+          (hash-table-count (goscope-types scope.file))))
 
 (defmethod print-object ((pkg gopackage) stream)
   (format stream "#<~S ~S ~S ~S ~S ~S ~S ~S ~S>"
@@ -303,7 +326,7 @@
           (gopackage-name pkg)
           :path
           (gopackage-path pkg)
-          :object-count
-          (hash-table-count (goscope-objects pkg))
+          :obj-count
+          (hash-table-count (goscope-objs pkg))
           :type-count
           (hash-table-count (goscope-types pkg))))

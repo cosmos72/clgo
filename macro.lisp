@@ -15,9 +15,6 @@
 
 (in-package :clgo)
 
-;; Go is case-sensitive => make Common Lisp case sensitive too
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (setf (readtable-case *readtable*) :invert))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro eval-always (&body body)
@@ -55,6 +52,32 @@
              collect `(defvar ,@arg))
      (values)))
            
+
+
+;; Go is case-sensitive => provide functions and macros
+;; to temporarily make Common Lisp case sensitive too
+;; and to restore the previous settings.
+;;
+;; the package clgo itself does NOT need to change case sensitivity:
+;; such feature is provided for user convenience.
+(defvar %saved-readtable-case)
+
+(func set-readtable-case-sensitive ()
+  (setf %saved-readtable-case (readtable-case *readtable*))
+  (setf (readtable-case *readtable*) :invert))
+
+(func restore-readtable-case ()
+  (setf (readtable-case *readtable*) %saved-readtable-case))
+
+(macro with-readtable-case-sensitive (&body body)
+  `(let ((%saved-readtable-case (readtable-case *readtable*)))
+     (unwind-protect
+          (progn
+            (setf (readtable-case *readtable*) :invert)
+            ,@body)
+       (restore-readtable-case))))
+
+
 
 (declaim (inline htable@))
 (func htable@ (hash-table key)

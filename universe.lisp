@@ -49,17 +49,22 @@
 
 
 (var (*universe*
-      (let ((pkg (make-gopackage :name '*universe* :path "")))
-        (setf (gopackage-types pkg)
-              (make-types int  int8  int16  int32  int64
-                          uint uint8 uint16 uint32 uint64 uintptr
-                          float32 float64 complex64 complex128
-                          string error))
-        ;; TODO: add basic types byte and rune
-        (setf (gopackage-objects pkg)
-              (make-goobjects
-               (goconst 'false untyped.bool   false pkg)
-               (goconst 'true  untyped.bool   true  pkg)
-               (goconst 'nil   nil            nil   pkg)))
-        pkg)))
+      (let* ((pkg (make-gopackage :name '*universe* :path ""))
+             (objs (make-goobjs
+                       (goconst 'false untyped.bool   false pkg)
+                       (goconst 'true  untyped.bool   true  pkg)
+                       (goconst 'nil   nil            nil   pkg)))
+             (types (make-types int  int8  int16  int32  int64
+                                uint uint8 uint16 uint32 uint64 uintptr
+                                float32 float64 complex64 complex128
+                                string error)))
+        ;; add type aliases: byte and rune
+        (htable! types 'byte byte)
+        (htable! types 'rune rune)
 
+        (setf (gopackage-objs pkg) objs
+              (gopackage-types   pkg) types)
+        pkg))
+
+     ;; calls (gopackage) which requires *universe*
+     (*compiler* (new-gocompiler)))
