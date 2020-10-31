@@ -138,6 +138,12 @@
   (fields     %[]    :type simple-vector)) ;; array of reflect.field
 
 
+;; represents type of untyped constants: 
+;; either bool, rune, int, float64, complex128 or string
+(defstruct (untyped (:include type.basic)))
+
+
+
 
 (defstruct reflect.field
   (name       ""     :type string)

@@ -134,6 +134,12 @@
                    :elem elem))
 
 
+(func untyped (name kind cl-type)
+  (declare (type symbol    name)
+           (type kind      kind)
+           (type (or symbol cons) cl-type))
+  (make-untyped :kind kind :cl-type cl-type :name name))
+
 
 (func reflect.field-size (field)
   (declare (type reflect.field field))

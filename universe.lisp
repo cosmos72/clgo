@@ -28,6 +28,7 @@
  (uint32  (type.basic 'uint32  kind.int32  4           '(unsigned-byte 32)))
  (uint64  (type.basic 'uint64  kind.int64  8           '(unsigned-byte 64)))
  (byte       uint8)
+ (rune       uint32)
  (float32    (type.basic 'float32    kind.float32    4    'single-float))
  (float64    (type.basic 'float64    kind.float64    8    'double-float))
  (complex64  (type.basic 'complex64  kind.complex64  8   '(complex single-float)))
@@ -37,7 +38,13 @@
               'error
               (type.interface
                nil
-               (vector (gofunc '|Error| (type.func nil nil (vector string))))))))
+               (vector (gofunc '|Error| (type.func nil nil (vector string)))))))
+
+ (untyped.bool    (untyped 'bool       kind.bool       'boolean))
+ (untyped.rune    (untyped 'rune       kind.int32      '(unsigned-byte 32)))
+ (untyped.int     (untyped 'int        kind.int        'integer))
+ (untyped.float   (untyped 'float64    kind.float64    'rational))
+ (untyped.complex (untyped 'complex128 kind.complex128 '(complex rational))))
                          
 
 
@@ -47,11 +54,12 @@
               (make-types int  int8  int16  int32  int64
                           uint uint8 uint16 uint32 uint64 uintptr
                           float32 float64 complex64 complex128
-                          bool string error))
+                          string error))
+        ;; TODO: add basic types byte and rune
         (setf (gopackage-objects pkg)
               (make-goobjects
-               (goconst 'false bool   false pkg)
-               (goconst 'true  bool   true  pkg)
-               (goconst 'nil   nil    nil   pkg)))
+               (goconst 'false untyped.bool   false pkg)
+               (goconst 'true  untyped.bool   true  pkg)
+               (goconst 'nil   nil            nil   pkg)))
         pkg)))
 
