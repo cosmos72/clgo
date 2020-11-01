@@ -38,7 +38,8 @@
               'error
               (type.interface
                nil
-               (vector (gofunc '|Error| (type.func nil nil (vector string)))))))
+               (vector (gofunc '|Error| (type.func nil nil (vector string)))))
+              nil))
 
  (untyped.bool    (untyped 'bool       kind.bool       'boolean))
  (untyped.rune    (untyped 'rune       kind.int32      '(unsigned-byte 32)))
@@ -51,9 +52,10 @@
 (var (*universe*
       (let* ((pkg (make-gopackage :name '*universe* :path ""))
              (objs (make-goobjs
-                       (goconst 'false untyped.bool   false pkg)
-                       (goconst 'true  untyped.bool   true  pkg)
-                       (goconst 'nil   nil            nil   pkg)))
+                    pkg
+                    (goconst 'false untyped.bool   false)
+                    (goconst 'true  untyped.bool   true)
+                    (goconst 'nil   nil            nil)))
              (types (make-types int  int8  int16  int32  int64
                                 uint uint8 uint16 uint32 uint64 uintptr
                                 float32 float64 complex64 complex128
@@ -62,21 +64,18 @@
         (htable! types 'byte byte)
         (htable! types 'rune rune)
 
-        (setf (gopackage-objs pkg) objs
-              (gopackage-types   pkg) types)
+        (setf (gopackage-objs  pkg) objs
+              (gopackage-types pkg) types)
         pkg)))
 
 
-(func gopackage (name path)
-  (declare (type symbol name)
-           (type string path))
+(func gopackage ((name symbol) (path string)) (gopackage)
   (make-gopackage :name name :path path :parent *universe*))
 
-(func gocompiler (scope)
-  (declare (type goscope scope))
+(func gocompiler ((scope goscope)) (gocompiler)
   (make-gocompiler :scope scope))
 
-(func new-gocompiler ()
+(func new-gocompiler () (gocompiler)
   (gocompiler (goscope.file "repl.go" (gopackage 'main "main"))))
 
 
