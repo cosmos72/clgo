@@ -90,65 +90,65 @@
 (deftype complex128 () '(complex double-float))
 (deftype string     () 'cl:string)
 
-(defstruct (type.go (:conc-name type_))
+(defstruct (type_go (:conc-name type.))
   (kind       nil    :type kind)
   (size       nil    :type (or null uintptr))
   (comparable true   :type boolean)
-  (cl-type    nil    :type (or symbol list))
+  (cltype    nil    :type (or symbol list))
   ;; number of simple-vector slots needed by this type
-  (cl-slots   1      :type (or null uintptr)))
+  (clslots   1      :type (or null uintptr)))
 
-(defstruct (type.array (:include type.go))
+(defstruct (type_array (:include type_go))
   (count      0      :type int)
-  (elem       nil :type (or null type.go)))
+  (elem       nil :type (or null type_go)))
 
-(defstruct (type.basic (:include type.go))
-  (name    (error "type.basic: missing name") :type symbol))
+(defstruct (type_basic (:include type_go))
+  (name    (error "type_basic: missing name") :type symbol))
 
-(defstruct (type.chan (:include type.go))
+(defstruct (type_chan (:include type_go))
   (dir  chandir.both :type chandir)
-  (elem       nil :type (or null type.go)))
+  (elem       nil :type (or null type_go)))
 
-(defstruct (type.func (:include type.go))
-  (recv       nil :type (or null type.go))
-  (params     %[] :type simple-vector)     ;; array of type.go
-  (results    %[] :type simple-vector))    ;; array of type.go
+(defstruct (type_func (:include type_go))
+  (recv       nil :type (or null type_go))
+  (params     %[] :type simple-vector)     ;; array of type_go
+  (results    %[] :type simple-vector))    ;; array of type_go
 
-(defstruct (type.interface (:include type.go))
-  (embeddeds        %[] :type simple-vector)  ;; array of type.go
+(defstruct (type_interface (:include type_go))
+  (embeddeds        %[] :type simple-vector)  ;; array of type_go
   (explicit-methods %[] :type simple-vector)  ;; array of gofunc
   (methods          %[] :type simple-vector)) ;; array of gofunc
 
-(defstruct (type.map (:include type.go))
-  (key        nil :type (or null type.go))
-  (elem       nil :type (or null type.go)))
+(defstruct (type_map (:include type_go))
+  (key        nil :type (or null type_go))
+  (elem       nil :type (or null type_go)))
 
-(defstruct (type.named (:include type.go))
-  (name      (error "type.named: missing name") :type symbol)
-  (underlying nil :type (or null type.go))
+(defstruct (type_named (:include type_go))
+  (name      (error "type_named: missing name") :type symbol)
+  (underlying nil :type (or null type_go))
   (methods    %[] :type simple-vector)) ;; array of gofunc
 
-(defstruct (type.ptr (:include type.go))
-  (elem       (error "type.ptr: missing elem") :type type.go))
+(defstruct (type_ptr (:include type_go))
+  (elem       (error "type_ptr: missing elem") :type type_go))
 
-(defstruct (type.slice (:include type.go))
-  (elem       nil :type (or null type.go)))
+(defstruct (type_slice (:include type_go))
+  (elem       nil :type (or null type_go)))
 
-(defstruct (type.struct (:include type.go))
-  (fields     %[]    :type simple-vector)) ;; array of reflect.field
+(defstruct (type_struct (:include type_go))
+  (fields     %[]    :type simple-vector)) ;; array of reflect_field
 
 
 ;; represents type of untyped constants: 
 ;; either bool, rune, int, float64, complex128 or string
-(defstruct (untyped (:include type.basic)))
+(defstruct (untyped (:include type_basic)))
 
 
 
 
-(defstruct reflect.field
+(defstruct reflect_field
   (name       ""     :type string)
   (pkgpath    ""     :type string)
-  (type       (error "reflect.field: missing type") :type type.go)
+  (type       (error "reflect_field: missing type") :type type_go)
   (offset     0      :type uintptr)
   (index      0      :type int))
 
@@ -174,7 +174,7 @@
 ;; base type of goconst, gofunc, govar
 (defstruct goobj
   (name       nil    :type symbol)
-  (type       (error "goobj: missing type") :type (or null type.go))
+  (type       (error "goobj: missing type") :type (or null type_go))
   (scope      nil    :type (or null goscope)))
 
 (defstruct (goconst (:include goobj))

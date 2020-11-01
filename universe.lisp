@@ -15,30 +15,30 @@
 (in-package :clgo)
 
 (const-once
- (bool    (type.basic 'bool    kind_bool   1            'boolean))
- (int     (type.basic 'int     kind_int    _cpu_bytes  '(signed-byte #._cpu_bits)))
- (int8    (type.basic 'int8    kind_int8   1           '(signed-byte 8)))
- (int16   (type.basic 'int16   kind_int16  2           '(signed-byte 16)))
- (int32   (type.basic 'int32   kind_int32  4           '(signed-byte 32)))
- (int64   (type.basic 'int64   kind_int64  8           '(signed-byte 64)))
- (uint    (type.basic 'uint    kind_uint   _cpu_bytes  '(unsigned-byte #._cpu_bits)))
- (uintptr (type.basic 'uintptr kind_int64  _cpu_bytes  '(unsigned-byte #._cpu_bits)))
- (uint8   (type.basic 'uint8   kind_int8   1           '(unsigned-byte 8)))
- (uint16  (type.basic 'uint16  kind_int16  2           '(unsigned-byte 16)))
- (uint32  (type.basic 'uint32  kind_int32  4           '(unsigned-byte 32)))
- (uint64  (type.basic 'uint64  kind_int64  8           '(unsigned-byte 64)))
+ (bool    (type_basic 'bool    kind_bool   1            'boolean))
+ (int     (type_basic 'int     kind_int    _cpu_bytes  '(signed-byte #._cpu_bits)))
+ (int8    (type_basic 'int8    kind_int8   1           '(signed-byte 8)))
+ (int16   (type_basic 'int16   kind_int16  2           '(signed-byte 16)))
+ (int32   (type_basic 'int32   kind_int32  4           '(signed-byte 32)))
+ (int64   (type_basic 'int64   kind_int64  8           '(signed-byte 64)))
+ (uint    (type_basic 'uint    kind_uint   _cpu_bytes  '(unsigned-byte #._cpu_bits)))
+ (uintptr (type_basic 'uintptr kind_int64  _cpu_bytes  '(unsigned-byte #._cpu_bits)))
+ (uint8   (type_basic 'uint8   kind_int8   1           '(unsigned-byte 8)))
+ (uint16  (type_basic 'uint16  kind_int16  2           '(unsigned-byte 16)))
+ (uint32  (type_basic 'uint32  kind_int32  4           '(unsigned-byte 32)))
+ (uint64  (type_basic 'uint64  kind_int64  8           '(unsigned-byte 64)))
  (byte       uint8)
  (rune       uint32)
- (float32    (type.basic 'float32    kind_float32    4    'single-float))
- (float64    (type.basic 'float64    kind_float64    8    'double-float))
- (complex64  (type.basic 'complex64  kind_complex64  8   '(complex single-float)))
- (complex128 (type.basic 'complex128 kind_complex128 16  '(complex double-float)))
- (string     (type.basic 'string     kind_string (* 2 _cpu_bytes) 'cl:string))
- (error      (type.named
+ (float32    (type_basic 'float32    kind_float32    4    'single-float))
+ (float64    (type_basic 'float64    kind_float64    8    'double-float))
+ (complex64  (type_basic 'complex64  kind_complex64  8   '(complex single-float)))
+ (complex128 (type_basic 'complex128 kind_complex128 16  '(complex double-float)))
+ (string     (type_basic 'string     kind_string (* 2 _cpu_bytes) 'cl:string))
+ (error      (type_named
               'error
-              (type.interface
+              (type_interface
                nil
-               (vector (gofunc '|Error| (type.func nil nil (vector string)))))
+               (vector (gofunc '|Error| (type_func nil nil (vector string)))))
               nil))
 
  (untyped.bool    (untyped 'bool       kind_bool       'boolean))

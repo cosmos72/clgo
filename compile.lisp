@@ -25,7 +25,7 @@
             (setf sc (goscope-parent sc))))))
   (return nil))
 
-(func find_type ((scope (or null goscope)) (name symbol)) ((or null type.go))
+(func find_type ((scope (or null goscope)) (name symbol)) ((or null type_go))
   (let ((sc scope))
     (loop while sc do
       (let* ((types (goscope-types sc))
@@ -41,13 +41,13 @@
 (func c_find_obj ((c gocompiler) (name symbol)) ((or null goobj))
   (return (find_obj (gocompiler-scope c) name)))
 
-(func c_find_type ((c gocompiler) (name symbol)) ((or null type.go))
+(func c_find_type ((c gocompiler) (name symbol)) ((or null type_go))
   (return (find_type (gocompiler-scope c) name)))
 
 (func c_decl_obj ((c gocompiler) (obj goobj)) ()
   (decl_obj (gocompiler-scope c) obj))
 
-(func c_decl_type ((c gocompiler) (name symbol) (typ type.go)) ()
+(func c_decl_type ((c gocompiler) (name symbol) (typ type_go)) ()
   (decl_type (gocompiler-scope c) name typ))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
