@@ -13,22 +13,30 @@
 ;; See the Lisp Lesser General Public License for more details.
 
 
-(in-package :clgo)
+(in-package clgo)
 
 
-(deftype _ () cl:t)
+(deftype _       () 'cl:t)
+(deftype package () 'cl:package)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro eval-always (&body body)
     `(eval-when (:compile-toplevel :load-toplevel :execute)
        ,@body)))
 
+;; declare function (error ...) as an alias for (cl:error ...)
+(eval-always
+  (setf (symbol-function 'error) #'cl:error))
+
 (defmacro macro (name (&rest args) &body body)
   `(eval-always
      (defmacro ,name (,@args) ,@body)
      (values)))
 
-(defmacro with-gensyms (syms &body body)
+(macro package (name)
+  `(in-package ,(intern (symbol-name name) :keyword)))
+
+(macro with-gensyms (syms &body body)
   `(let ,(loop for sym in syms
                collect `(,sym (gensym (concatenate 'cl:string (symbol-name ',sym) "."))))
      ,@body))
@@ -65,7 +73,7 @@
              collect `(defconstant ,@arg))
      (values)))
 
-(macro const-once (&rest args)
+(macro const_once (&rest args)
   `(eval-always
      ,@(loop for (name value) in args
              collect `(defconstant ,name
@@ -80,6 +88,34 @@
              collect `(defvar ,@arg))
      (values)))
            
+
+
+(eval-always
+  (defun build_symbol (&rest tokens)
+    "each token must be a symbol or a string.
+interns a new symbol in current CL package:
+its name is the concatenation of the tokens"
+    (let ((names (loop for tok in tokens
+                       collect (if (symbolp tok) (symbol-name tok)
+                                   tok))))
+      (intern (apply #'concatenate 'cl:string names)))))
+
+(macro struct (name base_type &rest slots)
+  "each slot must be (slot_name slot_type &optional :init slot_init_value)"
+  `(defstruct (,name
+               ,@(when base_type `((:include ,base_type)))
+               (:constructor ,(build_symbol 'new_ name))
+               (:conc-name   ,(build_symbol name ".")))
+     ,@(loop for slot of-type cons in slots
+             for slot_name = (first slot)
+             for slot_type = (second slot)
+             collect `(,slot_name
+                       ,(if (= 2 (length slot))
+                            `(error "~S: missing ~S" ',name ',slot_name)
+                            (fourth slot))
+                       :type ,slot_type))))
+
+
 
 
 ;; Go is case-sensitive => provide functions and macros
@@ -105,13 +141,3 @@
             (setf (readtable-case *readtable*) :invert)
             ,@body)
        (restore-readtable-case))))
-
-
-
-(declaim (inline htable@))
-(func htable@ ((h hash-table) (key _)) (_ boolean)
-  (gethash key h))
-
-(declaim (inline htable!))
-(func htable! ((h hash-table) (key _) (value _)) (_)
-  (setf (gethash key h) value))

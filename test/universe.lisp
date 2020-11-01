@@ -20,5 +20,5 @@
 
 (def-test rerun (:compile-at :definition-time)
   (let ((u go::*universe*))
-    (is (= 19 (hash-table-count (go::gopackage-types u))))
-    (is (= 3 (hash-table-count (go::gopackage-objs u))))))
+    (is (= 19 (go::map.len (go::gopackage.types u))))
+    (is (= 3  (go::map.len (go::gopackage.objs  u))))))

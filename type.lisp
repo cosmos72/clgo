@@ -12,12 +12,7 @@
 ;; of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 ;; See the Lisp Lesser General Public License for more details.
 
-
 (in-package :clgo)
-
-; declare function (error ...) as an alias for (cl:error ...)
-(eval-always
-  (setf (symbol-function 'error) #'cl:error))
 
 (const
     (chandir.recv     'chandir.recv)
@@ -67,7 +62,7 @@
     (_cpu_bits (ash _cpu_bytes 3)))
 
 
-(const-once (%[] #()))
+(const_once (%[] #()))
 
 
 (deftype kind       () 'symbol)
@@ -90,97 +85,98 @@
 (deftype complex128 () '(complex double-float))
 (deftype string     () 'cl:string)
 
-(defstruct (type_go (:conc-name type.))
-  (kind       nil    :type kind)
-  (size       nil    :type (or null uintptr))
-  (comparable true   :type boolean)
-  (cltype    nil    :type (or symbol list))
+
+(defstruct (type_go (:constructor new_type_go)  (:conc-name type.))
+  (kind       nil  :type kind)
+  (size       nil  :type (or null uintptr))
+  (comparable true :type boolean)
+  (cltype     nil  :type (or symbol list))
   ;; number of simple-vector slots needed by this type
-  (clslots   1      :type (or null uintptr)))
+  (clslots    1    :type (or null uintptr)))
 
-(defstruct (type_array (:include type_go))
-  (count      0      :type int)
-  (elem       nil :type (or null type_go)))
+(struct type_array type_go
+  (count      int               :init 0)
+  (elem       (or null type_go) :init nil))
 
-(defstruct (type_basic (:include type_go))
-  (name    (error "type_basic: missing name") :type symbol))
+(struct type_basic type_go
+  (name       symbol))
 
-(defstruct (type_chan (:include type_go))
-  (dir  chandir.both :type chandir)
-  (elem       nil :type (or null type_go)))
+(struct type_chan type_go
+  (dir        chandir           :init chandir.both)
+  (elem       (or null type_go) :init nil))
 
-(defstruct (type_func (:include type_go))
-  (recv       nil :type (or null type_go))
-  (params     %[] :type simple-vector)     ;; array of type_go
-  (results    %[] :type simple-vector))    ;; array of type_go
+(struct type_func type_go
+  (recv       (or null type_go) :init nil)
+  (params     simple-vector     :init %[])    ;; array of type_go
+  (results    simple-vector     :init %[]))   ;; array of type_go
 
-(defstruct (type_interface (:include type_go))
-  (embeddeds        %[] :type simple-vector)  ;; array of type_go
-  (explicit-methods %[] :type simple-vector)  ;; array of gofunc
-  (methods          %[] :type simple-vector)) ;; array of gofunc
+(struct type_interface type_go
+  (embeddeds        simple-vector :init %[])  ;; array of type_go
+  (explicit-methods simple-vector :init %[])  ;; array of gofunc
+  (methods          simple-vector :init %[])) ;; array of gofunc
 
-(defstruct (type_map (:include type_go))
-  (key        nil :type (or null type_go))
-  (elem       nil :type (or null type_go)))
+(struct type_map type_go
+  (key        (or null type_go)  :init nil)
+  (elem       (or null type_go)  :init nil))
 
-(defstruct (type_named (:include type_go))
-  (name      (error "type_named: missing name") :type symbol)
-  (underlying nil :type (or null type_go))
-  (methods    %[] :type simple-vector)) ;; array of gofunc
+(struct type_named type_go
+  (name       symbol)
+  (underlying (or null type_go) :init nil)
+  (methods    simple-vector     :init %[])) ;; array of gofunc
 
-(defstruct (type_ptr (:include type_go))
-  (elem       (error "type_ptr: missing elem") :type type_go))
+(struct type_ptr type_go
+  (elem       type_go))
 
-(defstruct (type_slice (:include type_go))
-  (elem       nil :type (or null type_go)))
+(struct type_slice type_go
+  (elem       (or null type_go) :init nil))
 
-(defstruct (type_struct (:include type_go))
-  (fields     %[]    :type simple-vector)) ;; array of reflect_field
+(struct type_struct type_go
+  (fields     simple-vector     :init %[])) ;; array of field
 
 
 ;; represents type of untyped constants: 
 ;; either bool, rune, int, float64, complex128 or string
-(defstruct (untyped (:include type_basic)))
+(struct untyped type_basic)
 
 
 
 
-(defstruct reflect_field
-  (name       ""     :type string)
-  (pkgpath    ""     :type string)
-  (type       (error "reflect_field: missing type") :type type_go)
-  (offset     0      :type uintptr)
-  (index      0      :type int))
+(struct field nil
+  (name       string  :init "")
+  (pkgpath    string  :init "")
+  (type       type_go)
+  (offset     uintptr :init 0)
+  (index      int     :init 0))
 
 
 
-(defstruct goscope
-  (objs       (make-hash-table :test 'eq) :type hash-table)
-  (types      (make-hash-table :test 'eq) :type hash-table)
-  (parent     nil :type (or null goscope)))
+(struct goscope nil
+  (objs       (map symbol goobj)   :init (make_map :test 'eq))
+  (types      (map symbol type_go) :init (make_map :test 'eq))
+  (parent     (or null goscope)    :init nil))
 
-(defstruct (goscope.file (:include goscope))
-  (path       (error "goscope.file: missing path") :type string))
+(struct gofile goscope
+  (path       string))
 
-(defstruct (gopackage (:include goscope))
-  (name       (error "gopackage: missing name") :type symbol)
-  (path       (error "gopackage: missing path") :type string))
+(struct gopackage goscope
+  (name       symbol)
+  (path       string))
 
-(defstruct gocompiler
-  (scope      (error "gocompiler: missing scope") :type goscope))
+(struct gocompiler nil
+  (scope      goscope))
 
 
 
 ;; base type of goconst, gofunc, govar
-(defstruct goobj
-  (name       nil    :type symbol)
-  (type       (error "goobj: missing type") :type (or null type_go))
-  (scope      nil    :type (or null goscope)))
+(struct goobj nil
+  (name       symbol            :init nil)
+  (type       (or null type_go))
+  (scope      (or null goscope) :init nil))
 
-(defstruct (goconst (:include goobj))
-  (value      (error "goconst: missing value") :type cl:t))
+(struct goconst goobj
+  (value      _))
 
-(defstruct (govar   (:include goobj)))
+(struct govar   goobj)
 
-(defstruct (gofunc  (:include goobj)))
+(struct gofunc  goobj)
 

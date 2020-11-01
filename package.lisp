@@ -24,7 +24,7 @@
   (:use #:cl
         #:bordeaux-threads)
 
-  ;; avoid conflict with symbols cl:byte cl:error cl:string cl:return cl:t
-  (:shadow #:byte #:error #:string #:return #:t)
+  ;; avoid conflict with existing symbols in common-lisp package
+  (:shadow #:byte #:error #:map #:package #:return #:string #:t)
 
   (:export #:macro #:func))

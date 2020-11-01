@@ -14,7 +14,7 @@
 
 (in-package :clgo)
 
-(const-once
+(const_once
  (bool    (type_basic 'bool    kind_bool   1            'boolean))
  (int     (type_basic 'int     kind_int    _cpu_bytes  '(signed-byte #._cpu_bits)))
  (int8    (type_basic 'int8    kind_int8   1           '(signed-byte 8)))
@@ -50,7 +50,7 @@
 
 
 (var (*universe*
-      (let ((pkg (make-gopackage :name '*universe* :path "")))
+      (let ((pkg (new_gopackage :name '*universe* :path "")))
         (decl_objs pkg
                    (goconst 'false untyped.bool   false)
                    (goconst 'true  untyped.bool   true)
@@ -61,23 +61,23 @@
                     float32 float64 complex64 complex128
                     string error)
         ;; add type aliases: byte and rune
-        (let ((types (goscope-types pkg)))
-          (htable! types 'byte byte)
-          (htable! types 'rune rune))
+        (let ((types (goscope.types pkg)))
+          (map! types 'byte byte)
+          (map! types 'rune rune))
 
         pkg)))
 
 
 (func gopackage ((name symbol) (path string)) (gopackage)
-  (return (make-gopackage :name name :path path :parent *universe*)))
+  (return (new_gopackage :name name :path path :parent *universe*)))
 
 (func gocompiler ((scope goscope)) (gocompiler)
-  (return (make-gocompiler :scope scope)))
+  (return (new_gocompiler :scope scope)))
 
-(func new-gocompiler () (gocompiler)
-  (return (gocompiler (goscope.file "repl.go" (gopackage 'main "main")))))
+(func repl_gocompiler () (gocompiler)
+  (return (gocompiler (gofile "repl.go" (gopackage 'main "main")))))
 
 
 
 ;; calls (gopackage) which requires *universe*
-(var (*compiler* (new-gocompiler)))
+(var (*compiler* (repl_gocompiler)))
