@@ -64,10 +64,10 @@
 
 (func type.array ((count int) (elem type.go)) (type.array)
   (return
-    (make-type.array :kind kind.array
-                     :comparable (type-comparable elem)
+    (make-type.array :kind kind_array
+                     :comparable (type_comparable elem)
                      :cl-type 'simple-vector
-                     :cl-slots (let ((elem-slots (type-cl-slots elem)))
+                     :cl-slots (let ((elem-slots (type_cl-slots elem)))
                                  (if (null elem-slots)
                                      nil
                                      (* count elem-slots)))
@@ -81,7 +81,7 @@
                      :name name)))
 
 (func type.chan ((dir chandir) (elem type.go)) (type.chan)
-  (return (make-type.chan :kind kind.chan #| TODO :cl-type |#
+  (return (make-type.chan :kind kind_chan #| TODO :cl-type |#
                           :dir dir :elem elem)))
 
 (func type.func
@@ -89,7 +89,7 @@
     (type.func)
   (let ((params  (check-types.go params))
         (results (check-types.go results)))
-    (return (make-type.func :kind kind.func :comparable false #| TODO :cl-type |#
+    (return (make-type.func :kind kind_func :comparable false #| TODO :cl-type |#
                             :recv recv :params params :results results))))
 
 (func type.interface
@@ -98,13 +98,13 @@
   (let ((embeddeds (check-types.interface embeddeds))
         (methods   (check-methods methods)))
     (return
-      (make-type.interface :kind kind.interface #| TODO :cl-type |#
+      (make-type.interface :kind kind_interface #| TODO :cl-type |#
                            :embeddeds         embeddeds
                            :explicit-methods  methods
                            :methods           methods)))) #| TODO compute |#
 
 (func type.map ((key type.go) (elem type.go)) (type.map)
-  (make-type.map :kind kind.map :comparable false :cl-type 'hash-table
+  (make-type.map :kind kind_map :comparable false :cl-type 'hash-table
                  :key key :elem elem))
 
 (func type.named
@@ -114,19 +114,19 @@
         (methods (check-methods methods)))
     (if underlying
         (return
-          (make-type.named :kind (type-kind u) :size (type-size u)
-                           :comparable (type-comparable u) :cl-type (type-cl-type u)
+          (make-type.named :kind (type_kind u) :size (type_size u)
+                           :comparable (type_comparable u) :cl-type (type_cl-type u)
                            :name name :underlying u :methods methods))
         (return
-          (make-type.named :kind kind.invalid :comparable false
+          (make-type.named :kind kind_invalid :comparable false
                            :name name :methods methods)))))
 
 (func type.ptr ((elem type.go)) (type.ptr)
-  (return (make-type.ptr :kind kind.ptr #| TODO :cl-type |#
+  (return (make-type.ptr :kind kind_ptr #| TODO :cl-type |#
                          :elem elem)))
 
 (func type.slice ((elem type.go)) (type.slice)
-  (return (make-type.slice :kind kind.slice :comparable false #| TODO :cl-type |#
+  (return (make-type.slice :kind kind_slice :comparable false #| TODO :cl-type |#
                            :elem elem)))
 
 
@@ -135,7 +135,7 @@
 
 
 (func reflect.field-size ((field reflect.field)) ((or null uintptr))
-  (return (type-size (reflect.field-type field))))
+  (return (type_size (reflect.field-type field))))
 
 (func reflect.fields-size ((fields (or null simple-vector))) ((or null uintptr))
   (let ((fields (check-structfields fields))
@@ -150,7 +150,7 @@
 
 
 (func reflect.field-cl-slots ((field reflect.field)) ((or null uintptr))
-  (type-cl-slots (reflect.field-type field)))
+  (type_cl-slots (reflect.field-type field)))
 
 (func reflect.fields-cl-slots
     ((fields (or null simple-vector)) (initial-n-slots uintptr))
@@ -169,18 +169,18 @@
 
 (func type.struct ((fields (or null simple-vector))) (type.struct)
   (let ((fields (check-structfields fields)))
-    (make-type.struct :kind kind.struct
+    (make-type.struct :kind kind_struct
                       :size (reflect.fields-size fields)
                       :cl-type 'simple-vector
                       ;; 1 initial slot contains struct type. useful for debugging
                       :cl-slots (reflect.fields-cl-slots fields 1)
                       :comparable (every (lambda (field)
-                                           (type-comparable (reflect.field-type field)))
+                                           (type_comparable (reflect.field-type field)))
                                          fields)
                       :fields fields)))
 
 
-(func type-name ((typ type.go)) (symbol)
+(func type_name ((typ type.go)) (symbol)
   (etypecase typ
     (type.basic (type.basic-name typ))
     (type.named (type.named-name typ))))
@@ -221,7 +221,7 @@
 (defun decl_types (scope &rest types)
   (declare (type goscope scope))
   (dolist (typ types)
-    (decl_type scope (type-name typ) typ))
+    (decl_type scope (type_name typ) typ))
   (values))
 
 (defun decl_objs (scope &rest objs)
@@ -242,7 +242,7 @@
 
 (defmethod print-object ((typ type.named) stream)
   (format stream "#<~S ~S ~S>" (type-of typ) (type.named-name typ)
-          (type-kind typ)))
+          (type_kind typ)))
 
 
 (defmethod print-object ((obj goobj) stream)
@@ -274,7 +274,7 @@
           (type-of scope)
           :obj-count
           (hash-table-count (goscope-objs scope))
-          :type-count
+          :type_count
           (hash-table-count (goscope-types scope))
           :parent
           (let ((parent (goscope-parent scope)))
@@ -287,7 +287,7 @@
           (goscope.file-path scope.file)
           :obj-count
           (hash-table-count (goscope-objs scope.file))
-          :type-count
+          :type_count
           (hash-table-count (goscope-types scope.file))))
 
 (defmethod print-object ((pkg gopackage) stream)
@@ -299,5 +299,5 @@
           (gopackage-path pkg)
           :obj-count
           (hash-table-count (goscope-objs pkg))
-          :type-count
+          :type_count
           (hash-table-count (goscope-types pkg))))

@@ -30,7 +30,7 @@
 
 (defmacro with-gensyms (syms &body body)
   `(let ,(loop for sym in syms
-               collect `(,sym (gensym (concatenate 'string (symbol-name ',sym) "."))))
+               collect `(,sym (gensym (concatenate 'cl:string (symbol-name ',sym) "."))))
      ,@body))
     
 (eval-always
