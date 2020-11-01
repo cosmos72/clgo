@@ -17,12 +17,12 @@
 
 (func check-type.go ((typ _)) (type.go)
   (assert (typep typ 'type.go))
-  typ)
+  (return typ))
 
 (func check-types.go ((types (or null simple-vector))) (simple-vector)
   (when types
     (every #'check-type.go types))
-  (or types %[]))
+  (return (or types %[])))
 
 
 
@@ -32,73 +32,76 @@
                   (when u
                     (assert (typep u 'type.interface)))))
     (type.interface))
-  typ)
+  (return typ))
 
 (func check-types.interface ((types (or null simple-vector))) (simple-vector)
   (when types
     (every #'check-type.interface types))
-  (or types %[]))
+  (return (or types %[])))
 
 
 
 (func check-method ((method _)) (gofunc)
   (assert (typep method 'gofunc))
-  method)
+  (return method))
 
 (func check-methods ((methods (or null simple-vector))) (simple-vector)
   (when methods
     (every #'check-method methods))
-  (or methods %[]))
+  (return (or methods %[])))
 
 
 (func check-structfield ((field _)) (reflect.field)
   (assert (typep field 'reflect.field))
-  field)
+  (return field))
 
 (func check-structfields ((fields (or null simple-vector))) (simple-vector)
   (when fields
     (every #'check-structfield fields))
-  (or fields %[]))
+  (return (or fields %[])))
 
 
 
 (func type.array ((count int) (elem type.go)) (type.array)
-  (make-type.array :kind kind.array
-                   :comparable (type-comparable elem)
-                   :cl-type 'simple-vector
-                   :cl-slots (let ((elem-slots (type-cl-slots elem)))
-                               (if (null elem-slots)
-                                   nil
-                                   (* count elem-slots)))
-                   :count count :elem elem))
+  (return
+    (make-type.array :kind kind.array
+                     :comparable (type-comparable elem)
+                     :cl-type 'simple-vector
+                     :cl-slots (let ((elem-slots (type-cl-slots elem)))
+                                 (if (null elem-slots)
+                                     nil
+                                     (* count elem-slots)))
+                     :count count :elem elem)))
 
 (func type.basic
     ((name symbol) (kind kind) (size uintptr) (cl-type (or symbol cons)))
     (type.basic)
-  (make-type.basic :kind kind :size size :cl-type cl-type
-                   :name name))
+  (return
+    (make-type.basic :kind kind :size size :cl-type cl-type
+                     :name name)))
 
 (func type.chan ((dir chandir) (elem type.go)) (type.chan)
-  (make-type.chan :kind kind.chan #| TODO :cl-type |#
-                  :dir dir :elem elem))
+  (return (make-type.chan :kind kind.chan #| TODO :cl-type |#
+                          :dir dir :elem elem)))
 
 (func type.func
     ((recv (or null type.go)) (params (or null simple-vector)) (results (or null simple-vector)))
     (type.func)
   (let ((params  (check-types.go params))
         (results (check-types.go results)))
-    (make-type.func :kind kind.func :comparable false #| TODO :cl-type |#
-                    :recv recv :params params :results results)))
+    (return (make-type.func :kind kind.func :comparable false #| TODO :cl-type |#
+                            :recv recv :params params :results results))))
 
 (func type.interface
     ((embeddeds (or null simple-vector)) (methods (or null simple-vector)))
     (type.interface)
   (let ((embeddeds (check-types.interface embeddeds))
         (methods   (check-methods methods)))
-    (make-type.interface :kind kind.interface #| TODO :cl-type |#
-                         :embeddeds         embeddeds
-                         :explicit-methods  methods
-                         :methods           methods))) #| TODO compute |#
+    (return
+      (make-type.interface :kind kind.interface #| TODO :cl-type |#
+                           :embeddeds         embeddeds
+                           :explicit-methods  methods
+                           :methods           methods)))) #| TODO compute |#
 
 (func type.map ((key type.go) (elem type.go)) (type.map)
   (make-type.map :kind kind.map :comparable false :cl-type 'hash-table
@@ -110,38 +113,39 @@
   (let ((u underlying)
         (methods (check-methods methods)))
     (if underlying
-        (make-type.named :kind (type-kind u) :size (type-size u)
-                         :comparable (type-comparable u) :cl-type (type-cl-type u)
-                         :name name :underlying u :methods methods)
-        (make-type.named :kind kind.invalid :comparable false
-                         :name name :methods methods))))
+        (return
+          (make-type.named :kind (type-kind u) :size (type-size u)
+                           :comparable (type-comparable u) :cl-type (type-cl-type u)
+                           :name name :underlying u :methods methods))
+        (return
+          (make-type.named :kind kind.invalid :comparable false
+                           :name name :methods methods)))))
 
 (func type.ptr ((elem type.go)) (type.ptr)
-  (make-type.ptr :kind kind.ptr #| TODO :cl-type |#
-                 :elem elem))
+  (return (make-type.ptr :kind kind.ptr #| TODO :cl-type |#
+                         :elem elem)))
 
 (func type.slice ((elem type.go)) (type.slice)
-  (make-type.slice :kind kind.slice :comparable false #| TODO :cl-type |#
-                   :elem elem))
+  (return (make-type.slice :kind kind.slice :comparable false #| TODO :cl-type |#
+                           :elem elem)))
 
 
 (func untyped ((name symbol) (kind kind) (cl-type (or symbol cons))) (untyped)
-  (make-untyped :kind kind :cl-type cl-type :name name))
+  (return (make-untyped :kind kind :cl-type cl-type :name name)))
 
 
 (func reflect.field-size ((field reflect.field)) ((or null uintptr))
-  (type-size (reflect.field-type field)))
+  (return (type-size (reflect.field-type field))))
 
 (func reflect.fields-size ((fields (or null simple-vector))) ((or null uintptr))
   (let ((fields (check-structfields fields))
         (size 0))
     (loop for field across fields
           for field-size = (reflect.field-size field)
-          do
-             (if field-size
+          do (if field-size
                  (incf size field-size)
-                 (return-from reflect.fields-size nil)))
-    size))
+                 (return nil)))
+    (return size)))
 
 
 
@@ -205,19 +209,26 @@
 
 
 
-(defun make-types (&rest types)
-  (let ((h (make-hash-table :test 'eq)))
-    (loop for typ of-type type.go in types
-          do (htable! h (type-name typ) typ))
-    (the hash-table h)))
+(func decl_obj ((scope goscope) (obj goobj)) ()
+  (setf (goobj-scope obj) scope)
+  (htable! (goscope-objs scope) (goobj-name obj) obj)
+  (return))
 
-(defun make-goobjs (scope &rest objs)
+(func decl_type ((scope goscope) (name symbol) (typ type.go)) ()
+  (htable! (goscope-types scope) name typ)
+  (return))
+
+(defun decl_types (scope &rest types)
   (declare (type goscope scope))
-  (let ((h (make-hash-table :test 'eq)))
-    (loop for obj of-type goobj in objs
-          do (setf (goobj-scope obj) scope)
-          do (htable! h (goobj-name obj) obj))
-    (the hash-table h)))
+  (dolist (typ types)
+    (decl_type scope (type-name typ) typ))
+  (values))
+
+(defun decl_objs (scope &rest objs)
+  (declare (type goscope scope))
+  (dolist (obj objs)
+    (decl_obj scope obj))
+  (values))
 
 
 

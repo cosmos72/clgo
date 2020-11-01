@@ -24,7 +24,7 @@
   (:use #:cl
         #:bordeaux-threads)
 
-  ;; avoid conflict with symbols cl:byte cl:error cl:string cl:t
-  (:shadow #:byte #:error #:string #:t)
+  ;; avoid conflict with symbols cl:byte cl:error cl:string cl:return cl:t
+  (:shadow #:byte #:error #:string #:return #:t)
 
   (:export #:macro #:func))

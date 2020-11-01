@@ -155,7 +155,7 @@
 
 
 (defstruct goscope
-  (objs    (make-hash-table :test 'eq) :type hash-table)
+  (objs       (make-hash-table :test 'eq) :type hash-table)
   (types      (make-hash-table :test 'eq) :type hash-table)
   (parent     nil :type (or null goscope)))
 

@@ -50,33 +50,32 @@
 
 
 (var (*universe*
-      (let* ((pkg (make-gopackage :name '*universe* :path ""))
-             (objs (make-goobjs
-                    pkg
-                    (goconst 'false untyped.bool   false)
-                    (goconst 'true  untyped.bool   true)
-                    (goconst 'nil   nil            nil)))
-             (types (make-types int  int8  int16  int32  int64
-                                uint uint8 uint16 uint32 uint64 uintptr
-                                float32 float64 complex64 complex128
-                                string error)))
+      (let ((pkg (make-gopackage :name '*universe* :path "")))
+        (decl_objs pkg
+                   (goconst 'false untyped.bool   false)
+                   (goconst 'true  untyped.bool   true)
+                   (goconst 'nil   nil            nil))
+        (decl_types pkg
+                    int  int8  int16  int32  int64
+                    uint uint8 uint16 uint32 uint64 uintptr
+                    float32 float64 complex64 complex128
+                    string error)
         ;; add type aliases: byte and rune
-        (htable! types 'byte byte)
-        (htable! types 'rune rune)
+        (let ((types (goscope-types pkg)))
+          (htable! types 'byte byte)
+          (htable! types 'rune rune))
 
-        (setf (gopackage-objs  pkg) objs
-              (gopackage-types pkg) types)
         pkg)))
 
 
 (func gopackage ((name symbol) (path string)) (gopackage)
-  (make-gopackage :name name :path path :parent *universe*))
+  (return (make-gopackage :name name :path path :parent *universe*)))
 
 (func gocompiler ((scope goscope)) (gocompiler)
-  (make-gocompiler :scope scope))
+  (return (make-gocompiler :scope scope)))
 
 (func new-gocompiler () (gocompiler)
-  (gocompiler (goscope.file "repl.go" (gopackage 'main "main"))))
+  (return (gocompiler (goscope.file "repl.go" (gopackage 'main "main")))))
 
 
 

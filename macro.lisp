@@ -28,6 +28,11 @@
      (defmacro ,name (,@args) ,@body)
      (values)))
 
+(defmacro with-gensyms (syms &body body)
+  `(let ,(loop for sym in syms
+               collect `(,sym (gensym (concatenate 'string (symbol-name ',sym) "."))))
+     ,@body))
+    
 (eval-always
   (defun split-list-pairs (pairs)
     (declare (type list pairs))
@@ -39,17 +44,20 @@
   
 (macro func (name (&rest args-and-types) (&rest ret-types) &body body)
   (multiple-value-bind (arg-names arg-types) (split-list-pairs args-and-types)
-    `(eval-always
-       (declaim (ftype (function (,@arg-types) (values ,@ret-types &optional)) ,name))
-       (defun ,name (,@arg-names)
+    (with-gensyms (results)
+      `(eval-always
+         (declaim (ftype (function (,@arg-types) (values ,@ret-types &optional)) ,name))
+         (defun ,name (,@arg-names)
          #|
          (declare ,@(loop for (arg-name arg-type) in args-and-types
                           collect `(type ,arg-type ,arg-name)))
          (the (values ,@ret-types &optional)
               (block ,name ,@body))
          |#
-         ,@body)
-       (values))))
+         (macrolet ((return (&rest ,results)
+                            `(return-from ,',name (values ,@,results))))
+           ,@body))
+         (values)))))
 
 (macro const (&rest args)
   `(eval-always
@@ -84,11 +92,11 @@
 
 (func set-readtable-case-sensitive () (keyword)
   (setf %saved-readtable-case (readtable-case *readtable*))
-  (setf (readtable-case *readtable*) :invert))
+  (return (setf (readtable-case *readtable*) :invert)))
 
 
 (func restore-readtable-case () (symbol)
-  (setf (readtable-case *readtable*) %saved-readtable-case))
+  (return (setf (readtable-case *readtable*) %saved-readtable-case)))
 
 (macro with-readtable-case-sensitive (&body body)
   `(let ((%saved-readtable-case (readtable-case *readtable*)))
@@ -102,7 +110,7 @@
 
 (declaim (inline htable@))
 (func htable@ ((h hash-table) (key _)) (_ boolean)
-  (gethash key h)) 
+  (gethash key h))
 
 (declaim (inline htable!))
 (func htable! ((h hash-table) (key _) (value _)) (_)
