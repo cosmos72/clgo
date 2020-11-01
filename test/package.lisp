@@ -25,6 +25,10 @@
         #:fiveam
         #:log4cl)
 
+  (:shadowing-import-from
+   #:clgo
+   #:byte #:error #:map #:package #:return #:string)
+
   (:export #:suite))
 
 
