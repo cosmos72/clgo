@@ -32,5 +32,5 @@
 ;; put into map i.e. hash-table
 (declaim (inline map!))
 (func map! ((m map) (key _) (value _)) (_)
-  (setf (gethash key m) value))
+  (return (setf (gethash key m) value)))
 

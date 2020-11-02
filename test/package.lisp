@@ -27,7 +27,7 @@
 
   (:shadowing-import-from
    #:clgo
-   #:byte #:error #:map #:package #:return #:string)
+   #:byte #:error #:map #:package #:return #:string #:type)
 
   (:export #:suite))
 

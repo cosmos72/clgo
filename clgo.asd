@@ -31,8 +31,8 @@
    (:file "macro"           :depends-on ("package"))
    (:file "map"             :depends-on ("macro"))
    (:file "type"            :depends-on ("map"))
-   (:file "type-func"       :depends-on ("type"))
-   (:file "universe"        :depends-on ("type-func"))
+   (:file "type_func"       :depends-on ("type"))
+   (:file "universe"        :depends-on ("type_func"))
    (:file "compile"         :depends-on ("universe")))
 
 

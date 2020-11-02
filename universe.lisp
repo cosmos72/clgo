@@ -38,22 +38,22 @@
               'error
               (type_interface
                nil
-               (vector (gofunc '|Error| (type_func nil nil (vector string)))))
+               (vector (gofunc '|Error| (type_func nil (vector string) false false))))
               nil))
 
- (untyped.bool    (untyped 'bool       kind_bool       'boolean))
- (untyped.rune    (untyped 'rune       kind_int32      '(unsigned-byte 32)))
- (untyped.int     (untyped 'int        kind_int        'integer))
- (untyped.float   (untyped 'float64    kind_float64    'rational))
- (untyped.complex (untyped 'complex128 kind_complex128 '(complex rational))))
+ (untyped_bool    (untyped 'bool       kind_bool       'boolean))
+ (untyped_rune    (untyped 'rune       kind_int32      '(unsigned-byte 32)))
+ (untyped_int     (untyped 'int        kind_int        'integer))
+ (untyped_float   (untyped 'float64    kind_float64    'rational))
+ (untyped_complex (untyped 'complex128 kind_complex128 '(complex rational))))
                          
 
 
 (var (*universe*
-      (let ((pkg (new_gopackage :name '*universe* :path "")))
+      (let ((pkg (new gopackage :name '*universe* :path "")))
         (decl_objs pkg
-                   (goconst 'false untyped.bool   false)
-                   (goconst 'true  untyped.bool   true)
+                   (goconst 'false untyped_bool   false)
+                   (goconst 'true  untyped_bool   true)
                    (goconst 'nil   nil            nil))
         (decl_types pkg
                     int  int8  int16  int32  int64
@@ -61,7 +61,7 @@
                     float32 float64 complex64 complex128
                     string error)
         ;; add type aliases: byte and rune
-        (let ((types (goscope.types pkg)))
+        (let ((types (-> pkg types)))
           (map! types 'byte byte)
           (map! types 'rune rune))
 
@@ -69,10 +69,10 @@
 
 
 (func gopackage ((name symbol) (path string)) (gopackage)
-  (return (new_gopackage :name name :path path :parent *universe*)))
+  (return (new gopackage :name name :path path :parent *universe*)))
 
 (func gocompiler ((scope goscope)) (gocompiler)
-  (return (new_gocompiler :scope scope)))
+  (return (new gocompiler :scope scope)))
 
 (func repl_gocompiler () (gocompiler)
   (return (gocompiler (gofile "repl.go" (gopackage 'main "main")))))

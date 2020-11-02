@@ -15,10 +15,10 @@
 
 (in-package :clgo-test)
 
-(def-suite universe-suite :in suite)
-(in-suite universe-suite)
+(def-suite universe_suite :in suite)
+(in-suite universe_suite)
 
-(def-test rerun (:compile-at :definition-time)
+(def-test universe_content (:compile-at :definition-time)
   (let ((u go::*universe*))
-    (is (= 19 (go::map.len (go::gopackage.types u))))
-    (is (= 3  (go::map.len (go::gopackage.objs  u))))))
+    (is (= 19 (go::map.len (-> u go::types))))
+    (is (= 3  (go::map.len (-> u go::objs))))))

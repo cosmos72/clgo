@@ -25,9 +25,11 @@
         #:bordeaux-threads)
 
   ;; avoid conflict with existing symbols in common-lisp package
-  (:shadow #:byte #:error #:map #:package #:return #:string #:t)
+  (:shadow #:byte #:break #:error #:map #:package #:return #:string #:t #:type
+           #:++)
 
-  (:export #:macro #:func #:return #:struct #:package
+  (:export #:const #:for #:func #:macro #:package #:range #:return #:struct #:type #:var
+           #:->
            #:int  #:int8  #:int16  #:int32  #:int64
            #:uint #:uint8 #:uint16 #:uint32 #:int64 #:uintptr
            #:bool #:byte #:float32 #:float64 #:complex64 #:complex128
