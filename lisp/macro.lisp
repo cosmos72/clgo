@@ -16,7 +16,7 @@
 (in-package clgo)
 
 
-(deftype _       () 'cl:t)
+(deftype any     () 'cl:t)
 (deftype package () 'cl:package)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -93,13 +93,13 @@ each token must be a symbol or a string."
            ,@body))
          (values)))))
 
-(macro const (&rest args)
+(macro const (&body args)
   `(eval-always
      ,@(loop for arg in args
              collect `(defconstant ,@arg))
      (values)))
 
-(macro const_once (&rest args)
+(macro const_once (&body args)
   `(eval-always
      ,@(loop for (name value) in args
              collect `(defconstant ,name
@@ -123,15 +123,16 @@ each token must be a symbol or a string."
     (false      nil))
 
 
-(func zero_value ((typ (or symbol cons))) (_ boolean)
+(func zero_value ((typ (or symbol cons))) (any boolean)
   (values
    (cond
      ((member typ '(int int8 int16 int32 int64
                     uint uint8 uint16 uint32 uint64 uintptr
                     byte rune))
       0)
-     ((member typ '(bool cltype kind symbol _))
+     ((member typ '(bool cltype kind symbol any))
       nil) ;; i.e. false if bool, kind_invalid if kind
+     ((eq typ 'float32)       0.0f0)
      ((eq typ 'float64)       0.0d0)
      ((eq typ 'complex64)     #c(0.0f0 0.0f0))
      ((eq typ 'complex128)    #c(0.0d0 0.0d0))
@@ -143,7 +144,7 @@ each token must be a symbol or a string."
    cl:t))
      
 
-(func slot_zero_value ((struct_name symbol) (slot_name symbol) (typ (or symbol cons))) (_)
+(func slot_zero_value ((struct_name symbol) (slot_name symbol) (typ (or symbol cons))) (any)
   (multiple-value-bind (zero ok) (zero_value typ)
     (if ok
         zero

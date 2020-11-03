@@ -14,7 +14,7 @@
 
 (in-package :clgo)
 
-(func check-type_go ((typ _)) (type_go)
+(func check-type_go ((typ any)) (type_go)
   (assert (typep typ 'type_go))
   (return typ))
 
@@ -25,7 +25,7 @@
 
 
 
-(func check-type_interface ((typ _)) (type_go)
+(func check-type_interface ((typ any)) (type_go)
   (etypecase typ
     (type_named (let ((u (-> typ underlying)))
                   (when u
@@ -40,8 +40,9 @@
 
 
 
-(func check-method ((method _)) (gofunc)
-  (assert (typep method 'gofunc))
+(func check-method ((method any)) (goobj)
+  (assert (typep method 'goobj))
+  (assert (eq gofunc (-> method kind)))
   (return method))
 
 (func check-methods ((methods (opt simple-vector))) (simple-vector)
@@ -50,7 +51,7 @@
   (return (or methods %[])))
 
 
-(func check-field ((field _)) (field)
+(func check-field ((field any)) (field)
   (assert (typep field 'field))
   (return field))
 
@@ -162,46 +163,46 @@
 
 
 (func goscope ((parent_scope (opt goscope))) (goscope)
-  (new goscope :parent parent_scope))
+  (new goscope :kind goscope :parent parent_scope))
 
-(func gofile ((path string) (pkg gopackage)) (gofile)
-  (new gofile :path path :parent pkg))
-
-
-
-
-(func goconst ((name symbol) (typ (opt type_go)) (value _)) (goconst)
-  ;; constant 'nil has nil type
-  (new goconst :name name :type typ :value value))
-
-(func govar ((name symbol) (typ type_go)) (govar)
-  (new govar :name name :type typ))
-
-(func gofunc ((name symbol) (typ type_go)) (gofunc)
-  (new gofunc :name name :type typ))
+(func gofile ((path string) (pkg goscope)) (goscope)
+  (new goscope :kind gofile :parent pkg :path path))
 
 
 
 
-(func decl_obj ((scope goscope) (obj goobj)) ()
+(func goconst ((name symbol) (typ (opt type_go)) (value any)) (goobj)
+  ;; constant 'nil has nil type, thus allow typ == nil
+  (new goobj :kind goconst :name name :type typ :value value))
+
+(func govar ((name symbol) (typ type_go)) (goobj)
+  (new goobj :kind govar :name name :type typ))
+
+(func gofunc ((name symbol) (typ type_go)) (goobj)
+  (new goobj :kind gofunc :name name :type typ))
+
+
+
+
+(func scope.decl_obj ((scope goscope) (obj goobj)) ()
   (setf (-> obj scope) scope)
   (map! (-> scope objs) (-> obj name) obj)
   (return))
 
-(func decl_type ((scope goscope) (name symbol) (typ type_go)) ()
+(func scope.decl_type ((scope goscope) (name symbol) (typ type_go)) ()
   (map! (-> scope types) name typ)
   (return))
 
-(defun decl_types (scope &rest types)
+(defun scope.decl_types (scope &rest types)
   (declare (cl:type goscope scope))
   (dolist (typ types)
-    (decl_type scope (-> typ name) typ))
+    (scope.decl_type scope (-> typ name) typ))
   (values))
 
-(defun decl_objs (scope &rest objs)
+(defun scope.decl_objs (scope &rest objs)
   (declare (cl:type goscope scope))
   (dolist (obj objs)
-    (decl_obj scope obj))
+    (scope.decl_obj scope obj))
   (values))
 
 
@@ -220,33 +221,33 @@
 
 
 (defmethod print-object ((obj goobj) stream)
-  (format stream "#<~S ~S ~S ~S ~S ~S ~S>" (type-of obj)
+  (if (eq goconst (-> obj kind))
+      (format stream "#<~S ~S ~S ~S ~S ~S ~S ~S ~S>" (-> obj kind)
+              :name  (-> obj name)
+              :type  (-> obj type)
+              :value (-> obj value)
+              :scope (if (-> obj scope) true false))
+      (format stream "#<~S ~S ~S ~S ~S ~S ~S>" (-> obj kind)
           :name  (-> obj name)
           :type  (-> obj type)
-          :scope (if (-> obj scope) true false)))
+          :scope (if (-> obj scope) true false))))
 
-(defmethod print-object ((obj goconst) stream)
-  (format stream "#<~S ~S ~S ~S ~S ~S ~S ~S ~S>" (type-of obj)
-          :name  (-> obj name)
-          :type  (-> obj type)
-          :value (-> obj value)
-          :scope (if (-> obj scope) true false)))
 
 (defmethod print-object ((scope goscope) stream)
-  (format stream "#<~S ~S ~S ~S ~S ~S ~S>" (type-of scope)
+  (case (-> scope kind)
+    (gopackage
+     (format stream "#<~S ~S ~S ~S ~S ~S ~S ~S ~S>" (-> scope kind)
+          :name       (-> scope name)
+          :path       (-> scope path)
           :obj_count  (map.len (-> scope objs))
-          :type_count (map.len (-> scope types))
-          :parent     (if (-> scope parent) true false)))
-
-(defmethod print-object ((file gofile) stream)
-  (format stream "#<~S ~S ~S ~S ~S ~S ~S>" (type-of file)
-          :path       (-> file path)
-          :obj_count  (map.len (-> file objs))
-          :type_count (map.len (-> file types))))
-
-(defmethod print-object ((pkg gopackage) stream)
-  (format stream "#<~S ~S ~S ~S ~S ~S ~S ~S ~S>" (type-of pkg)
-          :name       (-> pkg name)
-          :path       (-> pkg path)
-          :obj_count  (map.len (-> pkg objs))
-          :type_count (map.len (-> pkg types))))
+          :type_count (map.len (-> scope types))))
+    (gofile
+     (format stream "#<~S ~S ~S ~S ~S ~S ~S>" (-> scope kind)
+             :path       (-> scope path)
+             :obj_count  (map.len (-> scope objs))
+             :type_count (map.len (-> scope types))))
+    (otherwise
+     (format stream "#<~S ~S ~S ~S ~S ~S ~S>" (-> scope kind)
+             :obj_count  (map.len (-> scope objs))
+             :type_count (map.len (-> scope types))
+             :parent     (if (-> scope parent) true false)))))

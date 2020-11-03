@@ -26,14 +26,17 @@
 
   :components
   ((:static-file "clgo.asd")
-
-   (:file "package")
-   (:file "macro"           :depends-on ("package"))
-   (:file "map"             :depends-on ("macro"))
-   (:file "type"            :depends-on ("map"))
-   (:file "type_func"       :depends-on ("type"))
-   (:file "universe"        :depends-on ("type_func"))
-   (:file "compile"         :depends-on ("universe")))
+   (:module :lisp
+    :components
+    ((:file "package")
+     (:file "macro"           :depends-on ("package"))
+     (:file "map"             :depends-on ("macro"))
+     (:file "type"            :depends-on ("map"))
+     (:file "type_func"       :depends-on ("type"))
+     (:file "vm"              :depends-on ("type"))
+     (:file "universe"        :depends-on ("type_func" "vm"))
+     (:file "compiler"        :depends-on ("universe"))
+     (:file "repl"            :depends-on ("compiler")))))
 
 
   :in-order-to ((asdf:test-op (asdf:test-op "clgo-test"))))

@@ -15,40 +15,40 @@
 (in-package :clgo)
 
 (const
-    (chandir.recv     'chandir.recv)
-    (chandir.send     'chandir.send)
-    (chandir.both     'chandir.both))
+  (chandir.recv     'chandir.recv)
+  (chandir.send     'chandir.send)
+  (chandir.both     'chandir.both))
     
 (const
-    (kind_invalid     nil)
-    (kind_bool       'kind_bool)
+  (kind_invalid     nil)
+  (kind_bool       'kind_bool)
 
-    (kind_int        'kind_int)
-    (kind_int8       'kind_int8)
-    (kind_int16      'kind_int16)
-    (kind_int32      'kind_int32)
-    (kind_int64      'kind_int64)
-    (kind_uint       'kind_uint)
-    (kind_uint8      'kind_uint8)
-    (kind_uint16     'kind_uint16)
-    (kind_uint32     'kind_uint32)
-    (kind_uint64     'kind_uint64)
-    (kind_uintptr    'kind_uintptr)
+  (kind_int        'kind_int)
+  (kind_int8       'kind_int8)
+  (kind_int16      'kind_int16)
+  (kind_int32      'kind_int32)
+  (kind_int64      'kind_int64)
+  (kind_uint       'kind_uint)
+  (kind_uint8      'kind_uint8)
+  (kind_uint16     'kind_uint16)
+  (kind_uint32     'kind_uint32)
+  (kind_uint64     'kind_uint64)
+  (kind_uintptr    'kind_uintptr)
 
-    (kind_float32    'kind_float32)
-    (kind_float64    'kind_float64)
-    (kind_complex64  'kind_complex64)
-    (kind_complex128 'kind_complex128)
-    (kind_string     'kind_string)
+  (kind_float32    'kind_float32)
+  (kind_float64    'kind_float64)
+  (kind_complex64  'kind_complex64)
+  (kind_complex128 'kind_complex128)
+  (kind_string     'kind_string)
     
-    (kind_array      'kind_array)
-    (kind_chan       'kind_chan)
-    (kind_func       'kind_func)
-    (kind_interface  'kind_interface)
-    (kind_map        'kind_map)
-    (kind_ptr        'kind_ptr)
-    (kind_slice      'kind_slice)
-    (kind_struct     'kind_struct))
+  (kind_array      'kind_array)
+  (kind_chan       'kind_chan)
+  (kind_func       'kind_func)
+  (kind_interface  'kind_interface)
+  (kind_map        'kind_map)
+  (kind_ptr        'kind_ptr)
+  (kind_slice      'kind_slice)
+  (kind_struct     'kind_struct))
 
 
 
@@ -151,38 +151,30 @@
              (offset     uintptr)
              (index      int)))
 
+(const
+  (goconst   'goconst)
+  (gofunc    'gofunc)
+  (govar     'govar)
+
+  (goscope   'goscope)
+  (gofile    'gofile)
+  (gopackage 'gopackage))
 
 
+;; represents goscope, gofile, gopackage
 (type goscope (struct
+               (kind       symbol) ;; one of goscope gofile gopackage
                (objs       (map symbol goobj)   (make_map :test 'eq))
                (types      (map symbol type_go) (make_map :test 'eq))
-               (parent     (opt goscope))))
+               (parent     (opt goscope))
+               (name       symbol)   ;; set only if kind in (gofile gopackage)
+               (path       string))) ;; set only if kind in (gofile gopackage)
 
-(type gofile (struct
-              (goscope)
-              (path       string)))
-
-(type gopackage (struct
-                 (goscope)
-                 (name      symbol)
-                 (path      string)))
-
-(type gocompiler (struct
-                  (scope      goscope)))
-
-
-
-;; base type of goconst, gofunc, govar
+;; represents goconst, gofunc, govar
 (type goobj (struct
+             (kind       symbol) ;; one of: goconst gofunc govar
              (name       symbol)
              (type       (opt type_go))
+             (value      any)
              (scope      (opt goscope))))
-
-(type goconst (struct
-               (goobj)
-               (value    _)))
-
-(defclass govar  (goobj) ())
-
-(defclass gofunc (goobj) ())
 

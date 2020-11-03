@@ -28,10 +28,13 @@
                :fiveam)
 
   :components
-  ((:module :test
-    :components ((:file "package")
-                 (:file "universe"       :depends-on ("package"))
-                 (:file "run-suite"      :depends-on ("universe")))))
+  ((:module :lisp
+    :components
+    ((:module :test
+      :components
+      ((:file "package")
+       (:file "universe"       :depends-on ("package"))
+       (:file "run-suite"      :depends-on ("universe")))))))
   
   :perform (asdf:test-op
             (o c)

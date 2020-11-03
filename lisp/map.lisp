@@ -26,11 +26,11 @@
 
 ;; get from map i.e. hash-table
 (declaim (inline map@))
-(func map@ ((m map) (key _)) (_ boolean)
+(func map@ ((m map) (key any)) (any boolean)
   (gethash key m))
 
 ;; put into map i.e. hash-table
 (declaim (inline map!))
-(func map! ((m map) (key _) (value _)) (_)
+(func map! ((m map) (key any) (value any)) (any)
   (return (setf (gethash key m) value)))
 
